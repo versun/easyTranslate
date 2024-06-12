@@ -3,13 +3,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["./easytranslate"]
+packages = ["./easytranslator"]
 
 [project]
-name = "easytranslate"
+name = "easytranslator"
 version = "2024.6.12"
 authors = [
-  { name="Versun", email="easytranslate@versun.me" },
+  { name="Versun", email="easytranslator@versun.me" },
 ]
 description = "A Python package for reliable text translation using multiple free engines with automatic failover."
 readme = "README.md"
@@ -33,6 +33,6 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/versun/easytranslate"
-Repository = "https://github.com/versun/easytranslate.git"
-Issues = "https://github.com/versun/easytranslate/issues"
+Homepage = "https://github.com/versun/easytranslator"
+Repository = "https://github.com/versun/easytranslator.git"
+Issues = "https://github.com/versun/easytranslator/issues"

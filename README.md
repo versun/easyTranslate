@@ -1,4 +1,4 @@
-## easytranslate
+## easytranslator
 
 A Python package for reliable text translation using multiple free engines with automatic failover.
 
@@ -26,12 +26,12 @@ Currently, it supports the following languages:
 
 Installation
 -----------
-1. Install: `pip install easytranslate`
+1. Install: `pip install easytranslator`
 1. Translate a text:
     ```
-    from easytranslate import EasyTranslate
+    from easytranslator import EasyTranslator
 
-    et = EasyTranslate()
+    et = EasyTranslator()
     results = et.translate(
         text="Hello, world!", 
         dest_lang="Chinese Simplified", 
@@ -45,4 +45,4 @@ Installation
     }
     '''
     ```
-1. More details can be found in the [main.py](/easytranslate/main.py) file.
+1. More details can be found in the [main.py](/easytranslator/main.py) file.

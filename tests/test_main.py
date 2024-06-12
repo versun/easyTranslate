@@ -1,13 +1,13 @@
 # test_easy_translate.py
 import pytest
 from unittest.mock import MagicMock, patch
-from easytranslate import EasyTranslate
-from easytranslate.main import EasyTranslateError
-from easytranslate.settings import SUPPORTED_LANGUAGES, STABLE_TS
+from easytranslator import EasyTranslator
+from easytranslator.main import EasyTranslatorError
+from easytranslator.settings import SUPPORTED_LANGUAGES, STABLE_TS
 
 @pytest.fixture
 def et():
-    return EasyTranslate()
+    return EasyTranslator()
     
 def test_init(et):
     assert len(et.translators) == len(STABLE_TS)
@@ -60,7 +60,7 @@ def test_set_priority(et):
     et.set_priority('myMemory', 100)
     assert et.get_translator('myMemory').get('priority') == 100
 
-    with pytest.raises(EasyTranslateError) as excinfo:
+    with pytest.raises(EasyTranslatorError) as excinfo:
         et.set_priority('haha', 100)
     assert str(excinfo.value) == "Translator haha not supported"
 

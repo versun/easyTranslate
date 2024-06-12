@@ -2,16 +2,16 @@ import concurrent.futures
 import random
 import bisect
 import translators as ts
-from easytranslate.settings import SUPPORTED_LANGUAGES, STABLE_TS, LANG_MAP
+from easytranslator.settings import SUPPORTED_LANGUAGES, STABLE_TS, LANG_MAP
 from requests.exceptions import HTTPError
 import itertools
 from typing import Optional, List, Dict
 
 
-class EasyTranslateError(Exception):
+class EasyTranslatorError(Exception):
     pass
 
-class EasyTranslate:
+class EasyTranslator:
     TIMEOUT = 10
     SLEEP_SECONDS = 0
     UPDATE_SESSION_AFTER_FREQ = 1000
@@ -35,7 +35,7 @@ class EasyTranslate:
     def set_priority(self, translator_id: str, priority: int) -> List[Dict]:
         translator = self.get_translator(translator_id)
         if not translator:
-            raise EasyTranslateError(f"Translator {translator_id} not supported")
+            raise EasyTranslatorError(f"Translator {translator_id} not supported")
         translator["priority"] = priority
         return self.translators
 
