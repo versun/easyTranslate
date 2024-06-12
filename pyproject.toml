@@ -14,7 +14,7 @@ authors = [
 description = "A Python package for reliable text translation using multiple free engines with automatic failover."
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT License"}
+license = {text = "GPL-3.0 license"}
 classifiers = [
     "Environment :: Web Environment",
     "Intended Audience :: Developers",
