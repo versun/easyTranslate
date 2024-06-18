@@ -1,3 +1,4 @@
+import logging
 import concurrent.futures
 import random
 import bisect
@@ -17,8 +18,9 @@ class EasyTranslator:
     UPDATE_SESSION_AFTER_FREQ = 1000
     UPDATE_SESSION_AFTER_SECONDS = 1500
 
-    def __init__(self, top_n=3):
-        self.translators: List[dict] = sorted(STABLE_TS, key=lambda x: x["priority"])
+    def __init__(self, translators=[], top_n=3):
+        stable_ts = translators if translators else STABLE_TS
+        self.translators: List[dict] = sorted(stable_ts, key=lambda x: x["priority"])
         self.top_translators = self.translators[:top_n]
         self.remaining_translators = self.translators[top_n:]
 
@@ -40,7 +42,7 @@ class EasyTranslator:
         return self.translators
 
     def adjust_translator(self, translator, offset):
-        print(f"Adjusting translator {translator['id']} by offset {offset}")
+        logging.info("Adjusting translator %s by offset %s", translator['id'],offset)
         translator["priority"] += offset
         bisect.insort(self.translators, translator, key=lambda x: x["priority"])
 
@@ -63,7 +65,7 @@ class EasyTranslator:
                 "error_info": f"{dest_lang} is not in {translator_id}'s Lang Map, Please check the SUPPORTED_LANGUAGES",
             }
         try:
-            print(f"Translation using {translator_id}: {text}")
+            logging.info("Translation using %s: %s", translator_id,text)
             result = ts.translate_text(
                 text,
                 translator=translator_id,
@@ -81,17 +83,17 @@ class EasyTranslator:
                 return {"translated_text": result, "status": "success"}
         except ConnectionError as e:
             self.adjust_translator(translator, -2)
-            print(f"Failed to translate using {translator_id} {e}: ConnectionError")
+            logging.warning("Failed to translate using %s: ConnectionError, %s", translator_id,e)
         # except HTTPError as e:
         #     self.adjust_translator(translator, -1)
         #     assert(f"Failed to translate using {translator_id} {e}: HTTPError")
 
         except TimeoutError as e:
             self.adjust_translator(translator, -3)
-            print(f"Failed to translate using {translator_id} {e}: TimeoutError")
+            logging.warning("Failed to translate using %s: TimeoutError, %s", translator_id,e)
         except Exception as e:
             self.adjust_translator(translator, -3)
-            print(f"Failed to translate using {translator_id} {e}: Exception")
+            logging.warning("Failed to translate using %s: Exception, %s", translator_id,e)
 
         return {
             "translated_text": None,
@@ -130,7 +132,7 @@ class EasyTranslator:
             if result.get("status") == "success":
                 return result
 
-        print("All services failed to translate!")
+        logging.error("All services failed to translate!")
         return {
             "translated_text": None,
             "status": "error",
