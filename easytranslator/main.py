@@ -81,20 +81,20 @@ class EasyTranslator:
             )
 
             if result:
-                self.adjust_translator(translator, 1)
+                self.adjust_translator(translator, -1)
                 return {"translated_text": result, "status": "success"}
         except ConnectionError as e:
-            self.adjust_translator(translator, -2)
+            self.adjust_translator(translator, 2)
             logging.warning("Failed to translate using %s: ConnectionError, %s", translator_id,e)
         # except HTTPError as e:
-        #     self.adjust_translator(translator, -1)
+        #     self.adjust_translator(translator, 1)
         #     assert(f"Failed to translate using {translator_id} {e}: HTTPError")
 
         except TimeoutError as e:
-            self.adjust_translator(translator, -3)
+            self.adjust_translator(translator, 3)
             logging.warning("Failed to translate using %s: TimeoutError, %s", translator_id,e)
         except Exception as e:
-            self.adjust_translator(translator, -3)
+            self.adjust_translator(translator, 3)
             logging.warning("Failed to translate using %s: Exception, %s", translator_id,e)
 
         return {
