@@ -19,10 +19,11 @@ class EasyTranslator:
     UPDATE_SESSION_AFTER_SECONDS = 1500
 
     def __init__(self, translators=[], top_n=3):
+        self.top_n = top_n
         stable_ts = translators if translators else STABLE_TS
         self.translators: List[dict] = sorted(stable_ts, key=lambda x: x["priority"])
-        self.top_translators = self.translators[:top_n]
-        self.remaining_translators = self.translators[top_n:]
+        self.top_translators = self.translators[:self.top_n]
+        self.remaining_translators = self.translators[self.top_n:]
 
     def get_translator(self, translator_id: str) -> Optional[Dict]:
         # for t in self.translators:
