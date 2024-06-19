@@ -44,7 +44,9 @@ class EasyTranslator:
     def adjust_translator(self, translator, offset):
         logging.info("Adjusting translator %s by offset %s", translator['id'],offset)
         translator["priority"] += offset
-        bisect.insort(self.translators, translator, key=lambda x: x["priority"])
+        self.translators = bisect.insort(self.translators, translator, key=lambda x: x["priority"])
+        self.top_translators = self.translators[:self.top_n]
+        self.remaining_translators = self.translators[self.top_n:]
 
     def translate_with_translator(
         self,
