@@ -1,7 +1,7 @@
 import logging
 import concurrent.futures
-import random
-import bisect
+# import random
+# import bisect
 import translators as ts
 from easytranslator.settings import SUPPORTED_LANGUAGES, STABLE_TS, LANG_MAP
 from requests.exceptions import HTTPError
@@ -45,7 +45,8 @@ class EasyTranslator:
     def adjust_translator(self, translator, offset):
         logging.info("Adjusting translator %s by offset %s", translator['id'],offset)
         translator["priority"] += offset
-        self.translators = bisect.insort(self.translators, translator, key=lambda x: x["priority"])
+        #self.translators = bisect.insort(self.translators, translator, key=lambda x: x["priority"])
+        self.translators = sorted(self.translators, key=lambda x: x["priority"])
         self.top_translators = self.translators[:self.top_n]
         self.remaining_translators = self.translators[self.top_n:]
 
