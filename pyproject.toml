@@ -7,7 +7,7 @@ packages = ["./easytranslator"]
 
 [project]
 name = "easytranslator"
-version = "2024.6.18"
+version = "2024.6.19"
 authors = [
   { name="Versun", email="easytranslator@versun.me" },
 ]
