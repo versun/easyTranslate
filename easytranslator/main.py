@@ -111,19 +111,19 @@ class EasyTranslator:
                 "error_info": "Text or dest_lang is empty",
             }
 
-        translator = random.choice(self.top_translators)
-        if dest_lang not in LANG_MAP[translator["id"]]:
-            return {
-                "translated_text": None,
-                "status": "error",
-                "error_info": f"{dest_lang} is not in {translator['id']}'s Lang Map, Please check the SUPPORTED_LANGUAGES",
-            }
-
-        result = self.translate_with_translator(
-            translator, text, dest_lang, src_lang, proxies
-        )
-        if result.get("status") == "success":
-            return result
+        for translator in self.top_translators:
+            if dest_lang not in LANG_MAP[translator["id"]]:
+                return {
+                    "translated_text": None,
+                    "status": "error",
+                    "error_info": f"{dest_lang} is not in {translator['id']}'s Lang Map, Please check the SUPPORTED_LANGUAGES",
+                }
+    
+            result = self.translate_with_translator(
+                translator, text, dest_lang, src_lang, proxies
+            )
+            if result.get("status") == "success":
+                return result
 
         for translator in self.remaining_translators:
             result = self.translate_with_translator(
