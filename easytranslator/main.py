@@ -1,6 +1,6 @@
 import logging
 import concurrent.futures
-# import random
+import random
 # import bisect
 import translators as ts
 from easytranslator.settings import SUPPORTED_LANGUAGES, STABLE_TS, LANG_MAP
@@ -12,24 +12,36 @@ from typing import Optional, List, Dict
 class EasyTranslatorError(Exception):
     pass
 
+class WeightedRoundRobin:
+    def __init__(self, translators):
+        self.translators = translators
+        self.weights = [translator["priority"] for translator in translators]
+        self.total_weight = sum(self.weights)
+        self.current_index = -1
+        self.current_weight = 0
+
+    def get_next_translator(self):
+        while True:
+            self.current_index = (self.current_index + 1) % len(self.translators)
+            if self.current_index == 0:
+                self.current_weight = self.total_weight
+
+            if self.weights[self.current_index] > 0:
+                self.current_weight -= self.weights[self.current_index]
+                return self.translators[self.current_index]
+
 class EasyTranslator:
     TIMEOUT = 10
     SLEEP_SECONDS = 0
     UPDATE_SESSION_AFTER_FREQ = 1000
     UPDATE_SESSION_AFTER_SECONDS = 1500
 
-    def __init__(self, translators=[], top_n=3):
-        self.top_n = top_n
+    def __init__(self, translators=[]):
         stable_ts = translators if translators else STABLE_TS
         self.translators: List[dict] = sorted(stable_ts, key=lambda x: x["priority"])
-        self.top_translators = self.translators[:self.top_n]
-        self.remaining_translators = self.translators[self.top_n:]
+        self.wrr = WeightedRoundRobin(self.translators)
 
     def get_translator(self, translator_id: str) -> Optional[Dict]:
-        # for t in self.translators:
-        #     if t["id"] == t_id:
-        #         return t
-        # return None
         return next((t for t in self.translators if t["id"] == translator_id), None)
 
     def get_supported_language(self) -> List:
@@ -40,15 +52,15 @@ class EasyTranslator:
         if not translator:
             raise EasyTranslatorError(f"Translator {translator_id} not supported")
         translator["priority"] = priority
+        self.translators = sorted(self.translators, key=lambda x: x["priority"])
+        self.wrr = WeightedRoundRobin(self.translators)
         return self.translators
 
     def adjust_translator(self, translator, offset):
         logging.info("Adjusting translator %s by offset %s", translator['id'],offset)
-        translator["priority"] += offset
-        #self.translators = bisect.insort(self.translators, translator, key=lambda x: x["priority"])
+        translator["priority"] = max(translator["priority"] + offset, 0)
         self.translators = sorted(self.translators, key=lambda x: x["priority"])
-        self.top_translators = self.translators[:self.top_n]
-        self.remaining_translators = self.translators[self.top_n:]
+        self.wrr = WeightedRoundRobin(self.translators)
 
     def translate_with_translator(
         self,
@@ -88,10 +100,6 @@ class EasyTranslator:
         except ConnectionError as e:
             self.adjust_translator(translator, 2)
             logging.warning("Failed to translate using %s: ConnectionError, %s", translator_id,e)
-        # except HTTPError as e:
-        #     self.adjust_translator(translator, 1)
-        #     assert(f"Failed to translate using {translator_id} {e}: HTTPError")
-
         except TimeoutError as e:
             self.adjust_translator(translator, 3)
             logging.warning("Failed to translate using %s: TimeoutError, %s", translator_id,e)
@@ -115,21 +123,11 @@ class EasyTranslator:
                 "error_info": "Text or dest_lang is empty",
             }
 
-        for translator in self.top_translators:
+        for _ in range(len(self.translators)):
+            translator = self.wrr.get_next_translator()
             if dest_lang not in LANG_MAP[translator["id"]]:
-                return {
-                    "translated_text": None,
-                    "status": "error",
-                    "error_info": f"{dest_lang} is not in {translator['id']}'s Lang Map, Please check the SUPPORTED_LANGUAGES",
-                }
+                continue
     
-            result = self.translate_with_translator(
-                translator, text, dest_lang, src_lang, proxies
-            )
-            if result.get("status") == "success":
-                return result
-
-        for translator in self.remaining_translators:
             result = self.translate_with_translator(
                 translator, text, dest_lang, src_lang, proxies
             )

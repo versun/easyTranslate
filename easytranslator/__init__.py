@@ -1,1 +1,1 @@
-from .main import EasyTranslator
+from .main import EasyTranslator, WeightedRoundRobin

@@ -1,7 +1,6 @@
 # test_easy_translate.py
 import pytest
-from unittest.mock import MagicMock, patch
-from easytranslator import EasyTranslator
+from easytranslator import EasyTranslator, WeightedRoundRobin
 from easytranslator.main import EasyTranslatorError
 from easytranslator.settings import SUPPORTED_LANGUAGES, STABLE_TS
 
@@ -11,9 +10,32 @@ def et():
     
 def test_init(et):
     assert len(et.translators) == len(STABLE_TS)
-    assert len(et.top_translators) == 3
-    assert len(et.remaining_translators) == len(STABLE_TS)-3
+    #assert len(et.top_translators) == 3
+    #assert len(et.remaining_translators) == len(STABLE_TS)-3
+
+def test_weighted_round_robin(et):
+    wrr = WeightedRoundRobin(et.translators)
+    weights = [translator["priority"] for translator in et.translators]
+
+    assert wrr.current_index == -1
+    assert wrr.current_weight == 0
+    assert wrr.weights == weights
+    assert wrr.total_weight == sum(weights)
     
+    current_weight = wrr.total_weight - et.translators[0]["priority"]
+
+    translators_len = len(et.translators)
+    translators_with_priority = [t["priority"] for t in et.translators]
+
+    current_weight = sum(translators_with_priority)-translators_with_priority[0]
+    for i, translator in enumerate(et.translators):
+        translator_obj = wrr.get_next_translator()
+        assert translator_obj == translator
+        assert wrr.current_index == i
+        assert wrr.current_weight == current_weight
+
+        if i < translators_len - 1:
+            current_weight -= translators_with_priority[i+1]
 
 def test_translate(et):
     result = et.translate('Hello', dest_lang='Chinese Simplified')
@@ -33,14 +55,13 @@ def test_translate(et):
 def test_translate_batch(et):
     results = et.translate_batch(['Hello', 'World'], dest_lang='Chinese Simplified', src_lang='en')
     assert len(results) == 2
-    print(results)
     assert results['Hello']['status'] == 'success'
     assert results['World']['status'] == 'success' 
     assert results['Hello']['translated_text'] in ['您好','你好']
     assert results['World']['translated_text'] in ['世界']
 
 def test_adjust_translator(et):
-    translator = et.translators[0]
+    translator = et.translators[1]
     old_priority = translator["priority"]
     
     et.adjust_translator(translator, 1)
